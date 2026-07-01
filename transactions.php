@@ -393,8 +393,9 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="sms_parsed_date">تاریخ (میلادی YYYY-MM-DD)</label>
-                                <input type="text" id="sms_parsed_date" placeholder="1403/04/09 → 2024-07-01">
+                                <label for="sms_jalali_date">تاریخ *</label>
+                                <input type="text" id="sms_jalali_date" class="pwt-datepicker-input" data-alt="sms_parsed_date" readonly style="cursor:pointer;background:#fff;">
+                                <input type="hidden" id="sms_parsed_date">
                             </div>
                             <div class="form-group">
                                 <label for="sms_parsed_time">زمان</label>

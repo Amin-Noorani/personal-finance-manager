@@ -72,6 +72,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sms_type').value = 'expense';
         document.getElementById('sms_category_id').value = '';
         document.getElementById('sms_tag_id').value = '';
+        var smsJalaliInput = document.getElementById('sms_jalali_date');
+        var smsGregInput = document.getElementById('sms_parsed_date');
+        if (smsJalaliInput) smsJalaliInput.value = '';
+        if (smsGregInput) smsGregInput.value = '';
         smsResults.style.display = 'none';
         if (smsTypeSelect) filterSmsCategories();
     }
@@ -136,7 +140,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             document.getElementById('sms_parsed_amount').value = parsed.amount || '';
             document.getElementById('sms_parsed_type').value = parsed.type || 'expense';
-            document.getElementById('sms_parsed_date').value = parsed.gregorianDate || '';
+            // Set Jalali display field and hidden Gregorian field
+            var smsJalaliInput = document.getElementById('sms_jalali_date');
+            var smsGregInput = document.getElementById('sms_parsed_date');
+            if (smsJalaliInput) smsJalaliInput.value = parsed.jalaliDate || '';
+            if (smsGregInput) smsGregInput.value = parsed.gregorianDate || '';
             document.getElementById('sms_parsed_time').value = parsed.time || '';
             document.getElementById('sms_parsed_description').value = parsed.description || '';
             smsTypeSelect.value = parsed.type || 'expense';
