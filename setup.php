@@ -14,7 +14,7 @@ try {
     $db = getDB();
     $count = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
 } catch (Exception $e) {
-    $error = 'پایگاه داده راه‌اندازی نشده است. ابتدا <a href="/pfm/install.php">install.php</a> را اجرا کنید.';
+    $error = 'پایگاه داده راه‌اندازی نشده است. ابتدا install.php را اجرا کنید.';
     $count = -1;
 }
 
@@ -58,10 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
     <div class="login-container">
         <h1>ایجاد حساب کاربری</h1>
         <?php if ($success): ?>
-            <div class="alert alert-success"><?php echo $success; ?></div>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
         <?php if ($error && !$success): ?>
-            <div class="alert alert-error"><?php echo $error; ?></div>
+            <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         <?php if ($count === 0 || !empty($success)): ?>
         <form method="POST" action="">

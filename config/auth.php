@@ -1,4 +1,7 @@
 <?php
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.use_strict_mode', 1);
 session_start();
 
 define('CSRF_TOKEN_NAME', 'csrf_token');
@@ -84,15 +87,22 @@ function autoLoginFromCookie() {
     try {
         $db = getDB();
         $tokenHash = hash('sha256', $token);
-        $stmt = $db->prepare("SELECT id, username FROM users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch();
+        $stmt = $db->prepare("SELECT rt.id, u.id as user_id, u.username FROM remember_tokens rt JOIN users u ON rt.user_id = u.id WHERE rt.user_id = ? AND rt.token_hash = ? AND rt.expires_at > NOW()");
+        $stmt->execute([$userId, $tokenHash]);
+        $row = $stmt->fetch();
 
-        if ($user) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
+        if ($row) {
+            // Rotate token: delete old, issue new
+            $db->prepare("DELETE FROM remember_tokens WHERE id = ?")->execute([$row['id']]);
+            setRememberCookie($row['user_id']);
+
+            $_SESSION['user_id'] = $row['user_id'];
+            $_SESSION['username'] = $row['username'];
             session_regenerate_id(true);
             return true;
+        } else {
+            // Invalid token — clear cookie
+            clearRememberCookie();
         }
     } catch (Exception $e) {
         // ignore
@@ -109,6 +119,17 @@ function requireLogin() {
 
 function setRememberCookie($userId) {
     $token = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $token);
+    $expires = date('Y-m-d H:i:s', time() + (REMEMBER_DAYS * 24 * 60 * 60));
+
+    try {
+        $db = getDB();
+        $stmt = $db->prepare("INSERT INTO remember_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$userId, $tokenHash, $expires]);
+    } catch (Exception $e) {
+        // ignore
+    }
+
     setcookie(REMEMBER_COOKIE, $userId . ':' . $token, [
         'expires' => time() + (REMEMBER_DAYS * 24 * 60 * 60),
         'path' => '/',
@@ -119,6 +140,15 @@ function setRememberCookie($userId) {
 
 function clearRememberCookie() {
     if (isset($_COOKIE[REMEMBER_COOKIE])) {
+        $parts = explode(':', $_COOKIE[REMEMBER_COOKIE], 2);
+        if (count($parts) === 2) {
+            $userId = intval($parts[0]);
+            $tokenHash = hash('sha256', $parts[1]);
+            try {
+                $db = getDB();
+                $db->prepare("DELETE FROM remember_tokens WHERE user_id = ? AND token_hash = ?")->execute([$userId, $tokenHash]);
+            } catch (Exception $e) {}
+        }
         setcookie(REMEMBER_COOKIE, '', [
             'expires' => time() - 3600,
             'path' => '/',

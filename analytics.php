@@ -77,10 +77,11 @@ $totalIncome = array_sum(array_column($categoryData, 'income'));
 $totalExpense = array_sum(array_column($categoryData, 'expense'));
 $netAmount = $totalIncome - $totalExpense;
 
-$categoryJson = json_encode($categoryData);
-$monthlyJson = json_encode($monthlyData);
-$accountJson = json_encode($accountData);
-$tagJson = json_encode($tagData);
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+$categoryJson = json_encode($categoryData, $jsonFlags);
+$monthlyJson = json_encode($monthlyData, $jsonFlags);
+$accountJson = json_encode($accountData, $jsonFlags);
+$tagJson = json_encode($tagData, $jsonFlags);
 
 $pageTitle = 'تحلیل';
 $activePage = 'analytics';

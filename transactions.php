@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $action = 'list';
                 } catch (Exception $e) {
                     $db->rollBack();
-                    $error = 'خطا در ذخیره تراکنش: ' . $e->getMessage();
+                    $error = 'خطا در ذخیره تراکنش.';
                 }
             }
         } elseif ($postAction === 'delete') {

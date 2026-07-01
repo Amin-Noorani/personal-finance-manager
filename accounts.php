@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $success = 'حساب با موفقیت ذخیره شد.';
                     $action = 'list';
                 } catch (Exception $e) {
-                    $error = 'خطا در ذخیره حساب: ' . $e->getMessage();
+                    $error = 'خطا در ذخیره حساب.';
                 }
             }
         } elseif ($postAction === 'delete') {
