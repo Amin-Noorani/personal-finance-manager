@@ -57,6 +57,295 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // --- SMS Transaction Modal ---
+    var smsModal = document.getElementById('smsModal');
+    var openSmsBtn = document.getElementById('openSmsModal');
+    var closeSmsBtn = document.getElementById('closeSmsModal');
+    var processSmsBtn = document.getElementById('processSms');
+    var submitSmsBtn = document.getElementById('submitSmsTransaction');
+    var resetSmsBtn = document.getElementById('resetSmsForm');
+    var smsResults = document.getElementById('smsResults');
+
+    function resetSmsModal() {
+        document.getElementById('sms_text').value = '';
+        document.getElementById('sms_account_id').value = '';
+        document.getElementById('sms_type').value = 'expense';
+        document.getElementById('sms_category_id').value = '';
+        document.getElementById('sms_tag_id').value = '';
+        smsResults.style.display = 'none';
+        if (smsTypeSelect) filterSmsCategories();
+    }
+
+    if (openSmsBtn && smsModal) {
+        openSmsBtn.addEventListener('click', function() {
+            resetSmsModal();
+            smsModal.style.display = 'flex';
+        });
+    }
+    if (closeSmsBtn && smsModal) {
+        closeSmsBtn.addEventListener('click', function() {
+            resetSmsModal();
+            smsModal.style.display = 'none';
+        });
+    }
+    if (smsModal) {
+        smsModal.addEventListener('click', function(e) {
+            if (e.target === smsModal) {
+                resetSmsModal();
+                smsModal.style.display = 'none';
+            }
+        });
+    }
+
+    // SMS category filter by type
+    var smsTypeSelect = document.getElementById('sms_type');
+    var smsCatSelect = document.getElementById('sms_category_id');
+    if (smsTypeSelect && smsCatSelect) {
+        function filterSmsCategories() {
+            var selectedType = smsTypeSelect.value;
+            var options = smsCatSelect.querySelectorAll('option[data-cattype]');
+            var currentVal = smsCatSelect.value;
+            options.forEach(function(opt) {
+                var catType = opt.getAttribute('data-cattype');
+                if (catType === selectedType || catType === 'both' || !selectedType) {
+                    opt.style.display = '';
+                } else {
+                    opt.style.display = 'none';
+                    if (opt.value === currentVal) {
+                        smsCatSelect.value = '';
+                    }
+                }
+            });
+        }
+        smsTypeSelect.addEventListener('change', filterSmsCategories);
+        filterSmsCategories();
+    }
+
+    // Parse SMS text
+    if (processSmsBtn) {
+        processSmsBtn.addEventListener('click', function() {
+            var text = document.getElementById('sms_text').value;
+            if (!text.trim()) {
+                alert('لطفاً متن پیامک را وارد کنید.');
+                return;
+            }
+            var parsed = parseBankSms(text);
+            if (!parsed) {
+                alert('پیامک قابل پردازش نیست. لطفاً متن پیامک بانکی صحیح را وارد کنید.');
+                return;
+            }
+            document.getElementById('sms_parsed_amount').value = parsed.amount || '';
+            document.getElementById('sms_parsed_type').value = parsed.type || 'expense';
+            document.getElementById('sms_parsed_date').value = parsed.gregorianDate || '';
+            document.getElementById('sms_parsed_time').value = parsed.time || '';
+            document.getElementById('sms_parsed_description').value = parsed.description || '';
+            smsTypeSelect.value = parsed.type || 'expense';
+            filterSmsCategories();
+            smsResults.style.display = 'block';
+        });
+    }
+
+    // Reset SMS form
+    if (resetSmsBtn) {
+        resetSmsBtn.addEventListener('click', function() {
+            resetSmsModal();
+        });
+    }
+
+    // Submit SMS transaction via AJAX
+    if (submitSmsBtn) {
+        submitSmsBtn.addEventListener('click', function() {
+            var accountId = document.getElementById('sms_account_id').value;
+            var amount = document.getElementById('sms_parsed_amount').value;
+            var type = document.getElementById('sms_parsed_type').value;
+            var date = document.getElementById('sms_parsed_date').value;
+            var time = document.getElementById('sms_parsed_time').value || '00:00:00';
+            var categoryId = document.getElementById('sms_category_id').value;
+            var tagId = document.getElementById('sms_tag_id').value;
+            var description = document.getElementById('sms_parsed_description').value;
+
+            if (!accountId) {
+                alert('لطفاً حساب را انتخاب کنید.');
+                return;
+            }
+            if (!amount || amount <= 0) {
+                alert('مبلغ نامعتبر است.');
+                return;
+            }
+            if (!date) {
+                alert('تاریخ نامعتبر است.');
+                return;
+            }
+
+            var csrfToken = document.querySelector('#smsModal input[name="csrf_token"]');
+            if (!csrfToken) {
+                // Create a hidden input to hold CSRF token
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'csrf_token';
+                input.value = document.querySelector('form input[name="csrf_token"]').value;
+                document.getElementById('smsModal').appendChild(input);
+                csrfToken = input;
+            }
+
+            var formData = new FormData();
+            formData.append('csrf_token', csrfToken.value);
+            formData.append('action', 'add');
+            formData.append('type', type);
+            formData.append('amount', amount);
+            formData.append('date', date);
+            formData.append('time', time);
+            formData.append('account_id', accountId);
+            formData.append('category_id', categoryId || '');
+            formData.append('tag_id', tagId || '');
+            formData.append('description', description);
+
+            fetch('/pfm/transactions.php', {
+                method: 'POST',
+                body: formData
+            }).then(function(response) {
+                return response.text();
+            }).then(function(html) {
+                // Check for error in response
+                var errMatch = html.match(/class="alert alert-error"[^>]*>([^<]+)/);
+                if (errMatch) {
+                    alert(errMatch[1]);
+                } else {
+                    // No error found — assume success
+                    smsModal.style.display = 'none';
+                    window.location.reload();
+                }
+            }).catch(function() {
+                alert('خطا در ارتباط با سرور.');
+            });
+        });
+    }
+
+    function parseBankSms(text) {
+        // Normalize: convert Arabic chars to Persian equivalents so regex matches
+        // Arabic ي (U+064A) → Persian ی (U+06CC)
+        // Arabic ك (U+0643) → Persian ک (U+06A9)
+        // Arabic ة (U+0629) → Persian ه (U+0647)
+        // Arabic أ (U+0623) → Persian ا (U+0627)
+        var normalized = text
+            .replace(/\u064A/g, '\u06CC')
+            .replace(/\u0643/g, '\u06A9')
+            .replace(/\u0629/g, '\u0647')
+            .replace(/\u0623/g, '\u0627');
+
+        // Convert Persian digits to English
+        var persianNums = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        var engNums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        for (var i = 0; i < persianNums.length; i++) {
+            normalized = normalized.split(persianNums[i]).join(engNums[i]);
+        }
+
+        var result = { amount: 0, type: 'expense', jalaliDate: '', gregorianDate: '', time: '', description: '' };
+
+        // Determine transaction type from keywords
+        var expenseKeywords = ['برداشت', 'خرید', 'کارت به کارت به', 'پرداخت', 'انتقال'];
+        var incomeKeywords = ['واریز', 'کارت به کارت از', 'سود'];
+        var detectedType = 'expense';
+
+        for (var k = 0; k < expenseKeywords.length; k++) {
+            if (normalized.indexOf(expenseKeywords[k]) !== -1) {
+                detectedType = 'expense';
+                break;
+            }
+        }
+        for (var k = 0; k < incomeKeywords.length; k++) {
+            if (normalized.indexOf(incomeKeywords[k]) !== -1) {
+                detectedType = 'income';
+                break;
+            }
+        }
+        result.type = detectedType;
+
+        // Extract amount - look for the transaction line (contains amount after keyword)
+        // Pattern: keyword: number — using Persian forms since text is normalized
+        var amountPatterns = [
+            /(?:برداشت|خرید|انتقال|واریز|پرداخت|سود|کارت\s*به\s*کارت\s*(?:از|به)?)\s*:\s*([\d,]+)/,
+            /(?:مبلغ|مقدار)\s*:\s*([\d,]+)/
+        ];
+        var amount = 0;
+        for (var p = 0; p < amountPatterns.length; p++) {
+            var m = normalized.match(amountPatterns[p]);
+            if (m) {
+                amount = parseInt(m[1].replace(/,/g, ''), 10);
+                break;
+            }
+        }
+        result.amount = amount;
+
+        // Extract date (Jalali format: YYYY/MM/DD or YYYY-MM-DD)
+        // Persian form: تاریخ (text already normalized to Persian chars)
+        var dateMatch = normalized.match(/تاریخ\s*:\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+        if (dateMatch) {
+            var jy = parseInt(dateMatch[1], 10);
+            var jm = parseInt(dateMatch[2], 10);
+            var jd = parseInt(dateMatch[3], 10);
+            result.jalaliDate = jy + '/' + String(jm).padStart(2, '0') + '/' + String(jd).padStart(2, '0');
+            // Convert Jalali to Gregorian using the PHP function's algorithm
+            result.gregorianDate = jalaliToGregorianJS(jy, jm, jd);
+        }
+
+        // Extract time
+        var timeMatch = normalized.match(/ساعت\s*:\s*(\d{1,2}):(\d{1,2}):(\d{1,2})/);
+        if (timeMatch) {
+            result.time = String(parseInt(timeMatch[1], 10)).padStart(2, '0') + ':' +
+                          String(parseInt(timeMatch[2], 10)).padStart(2, '0') + ':' +
+                          String(parseInt(timeMatch[3], 10)).padStart(2, '0');
+        }
+
+        // Build description from bank name and card info
+        var lines = text.split('\n');
+        var descParts = [];
+        for (var l = 0; l < lines.length; l++) {
+            var line = lines[l].trim();
+            if (line.indexOf('بانک') !== -1) {
+                descParts.push(line);
+            }
+        }
+        result.description = descParts.join(' - ');
+        
+
+        if (result.amount === 0) return null;
+        console.log(result);
+        
+        return result;
+    }
+
+    function jalaliToGregorianJS(jy, jm, jd) {
+        // Exact port of JDF jalali_to_gregorian (jalalidate/jdf)
+        if (jy > 979) {
+            var gy = 1600;
+            jy -= 979;
+        } else {
+            var gy = 621;
+        }
+        var days = (365 * jy) + (Math.floor(jy / 33) * 8) + Math.floor((jy % 33 + 3) / 4) + 78 + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+        gy += 400 * Math.floor(days / 146097);
+        days %= 146097;
+        if (days > 36524) {
+            days--;
+            gy += 100 * Math.floor(days / 36524);
+            days %= 36524;
+            if (days >= 365) days++;
+        }
+        gy += 4 * Math.floor(days / 1461);
+        days %= 1461;
+        gy += Math.floor((days - 1) / 365);
+        if (days > 365) days = (days - 1) % 365;
+        var gd = days + 1;
+        var monthDays = [0, 31, ((gy % 4 === 0 && gy % 100 !== 0) || gy % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        var gm = 0;
+        for (gm = 0; gm < monthDays.length; gm++) {
+            if (gd <= monthDays[gm]) break;
+            gd -= monthDays[gm];
+        }
+        return gy + '-' + String(gm).padStart(2, '0') + '-' + String(gd).padStart(2, '0');
+    }
+
     // Category filter by transaction type
     var typeSelects = document.querySelectorAll('select[name="type"]');
     typeSelects.forEach(function(typeSelect) {

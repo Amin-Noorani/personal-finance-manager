@@ -172,9 +172,18 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
         <?php if ($action === 'list'): ?>
+        <?php if ($error): ?>
+        <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+        <?php if ($success): ?>
+        <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
+        <?php endif; ?>
         <div class="page-header">
             <h1>تراکنش‌ها</h1>
-            <a href="/pfm/transactions.php?action=add" class="btn btn-primary">+ افزودن تراکنش</a>
+            <div class="btn-group">
+                <a href="/pfm/transactions.php?action=add" class="btn btn-primary">+ افزودن تراکنش</a>
+                <button type="button" class="btn btn-success" id="openSmsModal">پیامک افزودن</button>
+            </div>
         </div>
 
         <?php if (!empty($transactions)): ?>
@@ -310,6 +319,101 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </form>
         <?php endif; ?>
+
+        <!-- SMS Transaction Modal -->
+        <div id="smsModal" class="modal-overlay" style="display:none;">
+            <div class="modal">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                <div class="modal-header">
+                    <h2>افزودن تراکنش از پیامک</h2>
+                    <button type="button" class="modal-close" id="closeSmsModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sms_account_id">حساب *</label>
+                            <select id="sms_account_id" required>
+                                <option value="">انتخاب حساب</option>
+                                <?php foreach ($accounts as $acc): ?>
+                                <option value="<?php echo $acc['id']; ?>"><?php echo htmlspecialchars($acc['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sms_type">نوع</label>
+                            <select id="sms_type">
+                                <option value="expense">هزینه</option>
+                                <option value="income">درآمد</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sms_category_id">دسته‌بندی</label>
+                            <select id="sms_category_id">
+                                <option value="">انتخاب دسته‌بندی</option>
+                                <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo $cat['id']; ?>" data-cattype="<?php echo $cat['type']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sms_tag_id">برچسب</label>
+                            <select id="sms_tag_id">
+                                <option value="">انتخاب برچسب</option>
+                                <?php foreach ($tags as $tag): ?>
+                                <option value="<?php echo $tag['id']; ?>"><?php echo htmlspecialchars($tag['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="sms_text">متن پیامک</label>
+                        <textarea id="sms_text" rows="5" placeholder="متن پیامک بانکی را اینجا جایگذاری کنید..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="processSms">پردازش پیامک</button>
+                    </div>
+
+                    <!-- Parsed results (hidden initially) -->
+                    <div id="smsResults" style="display:none;">
+                        <div class="sms-results-header">داده‌های استخراج شده</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sms_parsed_amount">مبلغ (تومان)</label>
+                                <input type="number" id="sms_parsed_amount" step="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="sms_parsed_type">نوع</label>
+                                <select id="sms_parsed_type">
+                                    <option value="expense">هزینه</option>
+                                    <option value="income">درآمد</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sms_parsed_date">تاریخ (میلادی YYYY-MM-DD)</label>
+                                <input type="text" id="sms_parsed_date" placeholder="1403/04/09 → 2024-07-01">
+                            </div>
+                            <div class="form-group">
+                                <label for="sms_parsed_time">زمان</label>
+                                <input type="time" id="sms_parsed_time" step="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="sms_parsed_description">توضیحات</label>
+                            <input type="text" id="sms_parsed_description" maxlength="255">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-success" id="submitSmsTransaction">افزودن تراکنش</button>
+                            <button type="button" class="btn" id="resetSmsForm">بازنشانی</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
 <?php

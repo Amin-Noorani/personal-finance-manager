@@ -21,78 +21,33 @@ function gregorianToJalali($gy, $gm, $gd) {
 }
 
 function jalaliToGregorian($jy, $jm, $jd) {
-    $jy += 1595;
-    $days = -355668 + (365 * $jy) + intval($jy / 33) * 8 + intval(($jy % 33 + 3) / 4) + $jd + (($jm < 7) ? ($jm - 1) * 31 : (($jm - 7) * 30) + 186);
-    $gy = 400 * intval($days / 146097);
+    // Exact port of JDF's jalali_to_gregorian (jalalidate/jdf)
+    if ($jy > 979) {
+        $gy = 1600;
+        $jy -= 979;
+    } else {
+        $gy = 621;
+    }
+    $days = (365 * $jy) + (intval($jy / 33) * 8) + intval(($jy % 33 + 3) / 4) + 78 + $jd + (($jm < 7) ? ($jm - 1) * 31 : (($jm - 7) * 30) + 186);
+    $gy += 400 * intval($days / 146097);
     $days %= 146097;
-    if ($days > 36520) {
+    if ($days > 36524) {
         $gy += 100 * intval(--$days / 36524);
-        $days = --$days % 36524;
+        $days %= 36524;
         if ($days >= 365) $days++;
     }
     $gy += 4 * intval($days / 1461);
     $days %= 1461;
-    if ($days > 365) {
-        $gy += intval(--$days / 365);
-        $days = $days % 365;
-    }
+    $gy += intval(($days - 1) / 365);
+    if ($days > 365) $days = ($days - 1) % 365;
     $gd = $days + 1;
-    $gm = ($gd > 31 && --$gd > 31 && --$gd > 31 && --$gd > 30 && --$gd > 29 && --$gd > 29 && --$gd > 31 && --$gd > 31 && --$gd > 30 && --$gd > 29 && --$gd > 29) ? $gd : 0;
-    if ($gm < 6) {
-        $days_in_month = [31, 31, 31, 31, 31, 31];
-    } else {
-        $days_in_month = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+    $monthDays = [0, 31, (($gy % 4 == 0 && $gy % 100 != 0) || $gy % 400 == 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    $gm = 0;
+    foreach ($monthDays as $gm => $v) {
+        if ($gd <= $v) break;
+        $gd -= $v;
     }
-    // Recalculate properly
-    $gy = 400 * intval($days / 146097);
-    $days -= $gy * 146097;
-    if ($days > 36520) {
-        $gy += 100 * intval($days / 36524);
-        $days -= intval($days / 36524) * 36524;
-        if ($days >= 365) $days++;
-    }
-    $gy += 4 * intval($days / 1461);
-    $days -= intval($days / 1461) * 1461;
-    if ($days > 365) {
-        $gy += intval(($days - 1) / 365);
-        $days = ($days - 1) % 365;
-    }
-    $gd = $days + 1;
-    $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-    $gy2 = $gy;
-    if ($gd > 366) {
-        $gy2++;
-    } else {
-        for ($i = 1; $i < 12; $i++) {
-            $mdays = $g_d_m[$i] + 1;
-            if ($i < 11) $mddays = $g_d_m[$i + 1] + 1;
-            else $mddays = 366;
-            if ($gd <= $mdays) break;
-            if ($gd <= $mdays) break;
-        }
-    }
-    // Simpler approach using day counts
-    $g_d_m2 = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    $totalDays = $jy * 365 + intval($jy / 33) * 8 + intval(($jy % 33 + 3) / 4) + $jd + (($jm < 7) ? ($jm - 1) * 31 : (($jm - 7) * 30) + 186) - 355668;
-    $gy2 = 1970;
-    while ($totalDays > 0) {
-        $isLeap = (($gy2 % 4 == 0) && ($gy2 % 100 != 0)) || ($gy2 % 400 == 0);
-        $yearDays = $isLeap ? 366 : 365;
-        if ($totalDays >= $yearDays) {
-            $totalDays -= $yearDays;
-            $gy2++;
-        } else {
-            break;
-        }
-    }
-    $gm = 1;
-    $monthDays = [31, ($gy2 % 4 == 0 && ($gy2 % 100 != 0 || $gy2 % 400 == 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    while ($totalDays >= $monthDays[$gm - 1]) {
-        $totalDays -= $monthDays[$gm - 1];
-        $gm++;
-    }
-    $gd = $totalDays + 1;
-    return [$gy2, $gm, $gd];
+    return [$gy, $gm, $gd];
 }
 
 function formatJalali($gregorianDate) {

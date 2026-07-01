@@ -1,0 +1,7 @@
+{
+    "name": "pfm/pfm",
+    "minimum-stability": "dev",
+    "require": {
+        "jalalidate/jdf": "*"
+    }
+}
