@@ -52,6 +52,14 @@ try {
         INDEX idx_account (account_id)
     ) ENGINE=InnoDB");
 
+    $db->exec("CREATE TABLE IF NOT EXISTS login_attempts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ip_address VARCHAR(45) NOT NULL,
+        attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_ip (ip_address),
+        INDEX idx_time (attempted_at)
+    ) ENGINE=InnoDB");
+
     $defaultCategories = [
         // Income categories
         ['حقوق', null, 'income'],
