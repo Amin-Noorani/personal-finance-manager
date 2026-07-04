@@ -90,39 +90,38 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <?php if (!empty($tags)): ?>
-        <div style="overflow-x:auto;">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>نام</th>
-                    <th>تراکنش‌ها</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($tags as $tag): ?>
-                <tr>
-                    <td><strong><?php echo htmlspecialchars($tag['name']); ?></strong></td>
-                    <td><?php echo toPersianDigits($tag['transaction_count']); ?></td>
-                    <td class="actions">
-                        <form method="POST" style="display:inline-flex;gap:0.25rem;align-items:center;flex-wrap:wrap;">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                            <input type="hidden" name="action" value="rename">
-                            <input type="hidden" name="tag_id" value="<?php echo $tag['id']; ?>">
-                            <input type="text" name="name" value="<?php echo htmlspecialchars($tag['name']); ?>" style="width:120px;padding:0.25rem;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;font-family:'Vazir',sans-serif;">
-                            <button type="submit" class="btn btn-small">تغییر نام</button>
-                        </form>
-                        <form method="POST" style="display:inline" onsubmit="return confirm('آیا از حذف این برچسب اطمینان دارید؟ تراکنش‌ها داده‌شان را حفظ می‌کنند.')">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="tag_id" value="<?php echo $tag['id']; ?>">
-                            <button type="submit" class="btn btn-small btn-danger">حذف</button>
-                        </form>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="card-list">
+            <?php foreach ($tags as $tag): ?>
+            <div class="card-item">
+                <div class="card-accent card-accent--neutral"></div>
+                <div class="card-body">
+                    <div class="card-fields">
+                        <div class="card-field" style="flex:1;min-width:200px;">
+                            <div class="card-field-value"><strong><?php echo htmlspecialchars($tag['name']); ?></strong></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">تراکنش‌ها</div>
+                            <div class="card-field-value"><?php echo toPersianDigits($tag['transaction_count']); ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <form method="POST" style="display:inline-flex;gap:0.25rem;align-items:center;flex-wrap:wrap;">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="rename">
+                        <input type="hidden" name="tag_id" value="<?php echo $tag['id']; ?>">
+                        <input type="text" name="name" value="<?php echo htmlspecialchars($tag['name']); ?>" style="width:120px;padding:0.25rem;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;font-family:'Vazir',sans-serif;">
+                        <button type="submit" class="btn btn-small">تغییر نام</button>
+                    </form>
+                    <form method="POST" style="display:inline" onsubmit="return confirm('آیا از حذف این برچسب اطمینان دارید؟ تراکنش‌ها داده‌شان را حفظ می‌کنند.')">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="tag_id" value="<?php echo $tag['id']; ?>">
+                        <button type="submit" class="btn btn-small btn-danger">حذف</button>
+                    </form>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
         <?php else: ?>
         <p class="text-muted">هنوز برچسبی وجود ندارد. اولین برچسب خود را ایجاد کنید.</p>

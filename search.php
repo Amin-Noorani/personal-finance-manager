@@ -200,37 +200,52 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <?php if (!empty($transactions)): ?>
-        <div style="overflow-x:auto;">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'date', 'dir' => currentSort('date', $sortBy, $sortDir)])); ?>">تاریخ<?php echo sortIcon('date', $sortBy, $sortDir); ?></a></th>
-                    <th>زمان</th>
-                    <th><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'type', 'dir' => currentSort('type', $sortBy, $sortDir)])); ?>">نوع<?php echo sortIcon('type', $sortBy, $sortDir); ?></a></th>
-                    <th><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'category', 'dir' => currentSort('category', $sortBy, $sortDir)])); ?>">دسته‌بندی<?php echo sortIcon('category', $sortBy, $sortDir); ?></a></th>
-                    <th><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'account', 'dir' => currentSort('account', $sortBy, $sortDir)])); ?>">حساب<?php echo sortIcon('account', $sortBy, $sortDir); ?></a></th>
-                    <th>برچسب</th>
-                    <th><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'amount', 'dir' => currentSort('amount', $sortBy, $sortDir)])); ?>">مبلغ<?php echo sortIcon('amount', $sortBy, $sortDir); ?></a></th>
-                    <th>توضیحات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($transactions as $row): ?>
-                <tr>
-                    <td><?php echo toPersianDigits(formatJalali($row['date'])); ?></td>
-                    <td><?php echo htmlspecialchars($row['time']); ?></td>
-                    <td><span class="badge badge-<?php echo $row['type']; ?>"><?php echo $typeLabels[$row['type']] ?? $row['type']; ?></span></td>
-                    <td><?php echo htmlspecialchars($row['category_name'] ?? '-'); ?></td>
-                    <td><?php echo htmlspecialchars($row['account_name']); ?></td>
-                    <td><?php echo htmlspecialchars($row['tag_name'] ?? '-'); ?></td>
-                    <td class="<?php echo $row['type'] === 'income' ? 'text-income' : 'text-expense'; ?>">
-                        <?php echo $row['type'] === 'income' ? '+' : '-'; ?><?php echo toPersianDigits(number_format($row['amount'], 0)); ?> تومان
-                    </td>
-                    <td><?php echo htmlspecialchars($row['description'] ?? ''); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="card-list">
+            <?php foreach ($transactions as $row): ?>
+            <div class="card-item">
+                <div class="card-accent card-accent--<?php echo $row['type']; ?>"></div>
+                <div class="card-body">
+                    <div class="card-fields">
+                        <div class="card-field">
+                            <div class="card-field-label"><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'date', 'dir' => currentSort('date', $sortBy, $sortDir)])); ?>">تاریخ<?php echo sortIcon('date', $sortBy, $sortDir); ?></a></div>
+                            <div class="card-field-value"><?php echo toPersianDigits(formatJalali($row['date'])); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">زمان</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['time']); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label"><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'type', 'dir' => currentSort('type', $sortBy, $sortDir)])); ?>">نوع<?php echo sortIcon('type', $sortBy, $sortDir); ?></a></div>
+                            <div class="card-field-value"><span class="badge badge-<?php echo $row['type']; ?>"><?php echo $typeLabels[$row['type']] ?? $row['type']; ?></span></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label"><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'category', 'dir' => currentSort('category', $sortBy, $sortDir)])); ?>">دسته‌بندی<?php echo sortIcon('category', $sortBy, $sortDir); ?></a></div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['category_name'] ?? '-'); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label"><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'account', 'dir' => currentSort('account', $sortBy, $sortDir)])); ?>">حساب<?php echo sortIcon('account', $sortBy, $sortDir); ?></a></div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['account_name']); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">برچسب</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['tag_name'] ?? '-'); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label"><a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'amount', 'dir' => currentSort('amount', $sortBy, $sortDir)])); ?>">مبلغ<?php echo sortIcon('amount', $sortBy, $sortDir); ?></a></div>
+                            <div class="card-field-value card-amount card-amount--<?php echo $row['type']; ?>">
+                                <?php echo $row['type'] === 'income' ? '+' : '-'; ?><?php echo toPersianDigits(number_format($row['amount'], 0)); ?> تومان
+                            </div>
+                        </div>
+                        <?php if (!empty($row['description'])): ?>
+                        <div class="card-field card-field--wide">
+                            <div class="card-field-label">توضیحات</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['description']); ?></div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
         <?php else: ?>
         <p class="text-muted">تراکنشی با فیلترهای انتخابی یافت نشد.</p>

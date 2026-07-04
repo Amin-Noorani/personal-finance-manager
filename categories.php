@@ -146,61 +146,63 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <?php if (!empty($categories)): ?>
-        <div style="overflow-x:auto;">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>نام</th>
-                    <th>نوع</th>
-                    <th>والد</th>
-                    <th>وضعیت</th>
-                    <th>تراکنش‌ها</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($categories as $cat): ?>
-                <tr class="<?php echo $cat['is_active'] ? '' : 'inactive-row'; ?>">
-                    <td>
-                        <?php if ($cat['parent_category_id']): ?>
-                        <span class="indent"><?php echo htmlspecialchars($cat['parent_name']); ?> ← </span>
-                        <?php endif; ?>
-                        <?php echo htmlspecialchars($cat['name']); ?>
-                    </td>
-                    <td>
-                        <span class="badge badge-<?php echo $cat['type'] === 'income' ? 'income' : ($cat['type'] === 'expense' ? 'expense' : 'active'); ?>">
-                            <?php echo $typeLabels[$cat['type']] ?? $cat['type']; ?>
-                        </span>
-                    </td>
-                    <td><?php echo $cat['parent_name'] ? htmlspecialchars($cat['parent_name']) : '-'; ?></td>
-                    <td>
-                        <span class="badge <?php echo $cat['is_active'] ? 'badge-active' : 'badge-inactive'; ?>">
-                            <?php echo $cat['is_active'] ? 'فعال' : 'غیرفعال'; ?>
-                        </span>
-                    </td>
-                    <td><?php echo toPersianDigits($cat['transaction_count']); ?></td>
-                    <td class="actions">
-                        <a href="/pfm/categories.php?action=edit&id=<?php echo $cat['id']; ?>" class="btn btn-small">ویرایش</a>
-                        <?php if ($cat['is_active']): ?>
-                        <form method="POST" style="display:inline">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                            <input type="hidden" name="action" value="deactivate">
-                            <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
-                            <button type="submit" class="btn btn-small btn-warning">غیرفعال</button>
-                        </form>
-                        <?php else: ?>
-                        <form method="POST" style="display:inline">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                            <input type="hidden" name="action" value="activate">
-                            <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
-                            <button type="submit" class="btn btn-small btn-success">فعال</button>
-                        </form>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="card-list">
+            <?php foreach ($categories as $cat): ?>
+            <div class="card-item <?php echo $cat['is_active'] ? '' : 'card-item--inactive'; ?>">
+                <div class="card-accent card-accent--<?php echo $cat['type'] === 'income' ? 'income' : ($cat['type'] === 'expense' ? 'expense' : 'neutral'); ?>"></div>
+                <div class="card-body">
+                    <div class="card-fields">
+                        <div class="card-field" style="flex:1;min-width:200px;">
+                            <div class="card-field-label">نام</div>
+                            <div class="card-field-value">
+                                <?php if ($cat['parent_category_id']): ?>
+                                <span class="indent"><?php echo htmlspecialchars($cat['parent_name']); ?> ← </span>
+                                <?php endif; ?>
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">نوع</div>
+                            <div class="card-field-value">
+                                <span class="badge badge-<?php echo $cat['type'] === 'income' ? 'income' : ($cat['type'] === 'expense' ? 'expense' : 'active'); ?>">
+                                    <?php echo $typeLabels[$cat['type']] ?? $cat['type']; ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">وضعیت</div>
+                            <div class="card-field-value">
+                                <span class="badge <?php echo $cat['is_active'] ? 'badge-active' : 'badge-inactive'; ?>">
+                                    <?php echo $cat['is_active'] ? 'فعال' : 'غیرفعال'; ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">تراکنش‌ها</div>
+                            <div class="card-field-value"><?php echo toPersianDigits($cat['transaction_count']); ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="/pfm/categories.php?action=edit&id=<?php echo $cat['id']; ?>" class="btn btn-small">ویرایش</a>
+                    <?php if ($cat['is_active']): ?>
+                    <form method="POST" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="deactivate">
+                        <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+                        <button type="submit" class="btn btn-small btn-warning">غیرفعال</button>
+                    </form>
+                    <?php else: ?>
+                    <form method="POST" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="activate">
+                        <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+                        <button type="submit" class="btn btn-small btn-success">فعال</button>
+                    </form>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
         <?php else: ?>
         <p class="text-muted">دسته‌بندی‌ای یافت نشد.</p>

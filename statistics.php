@@ -214,53 +214,68 @@ require_once __DIR__ . '/includes/header.php';
             <div class="section-header">
                 <h2>جزئیات</h2>
             </div>
-            <div style="overflow-x:auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th><?php echo $groupInfo['label']; ?></th>
-                        <th>درآمد</th>
-                        <th>هزینه</th>
-                        <th>خالص</th>
-                        <th>تراکنش‌ها</th>
-                        <th>سهم</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($stats as $row):
-                        $net = $row['total_income'] - $row['total_expense'];
-                        $sharePct = $totalTransactions > 0 ? ($row['transaction_count'] / $totalTransactions) * 100 : 0;
-                    ?>
-                    <tr>
-                        <td><strong><?php echo htmlspecialchars($row['group_name']); ?></strong></td>
-                        <td class="text-income"><?php echo $row['total_income'] > 0 ? toPersianDigits(number_format($row['total_income'], 0)) . ' تومان' : '-'; ?></td>
-                        <td class="text-expense"><?php echo $row['total_expense'] > 0 ? toPersianDigits(number_format($row['total_expense'], 0)) . ' تومان' : '-'; ?></td>
-                        <td class="<?php echo $net >= 0 ? 'text-income' : 'text-expense'; ?>">
-                            <?php echo $net >= 0 ? '+' : ''; ?><?php echo toPersianDigits(number_format($net, 0)); ?> تومان
-                        </td>
-                        <td><?php echo toPersianDigits($row['transaction_count']); ?></td>
-                        <td>
-                            <div class="share-bar">
-                                <div class="share-bar-fill" style="width: <?php echo $sharePct; ?>%"></div>
-                                <span><?php echo toPersianDigits(number_format($sharePct, 1)); ?>%</span>
+            <div class="card-list">
+                <?php foreach ($stats as $row):
+                    $net = $row['total_income'] - $row['total_expense'];
+                    $sharePct = $totalTransactions > 0 ? ($row['transaction_count'] / $totalTransactions) * 100 : 0;
+                ?>
+                <div class="card-item">
+                    <div class="card-accent card-accent--<?php echo $net >= 0 ? 'income' : 'expense'; ?>"></div>
+                    <div class="card-body">
+                        <div class="card-fields">
+                            <div class="card-field" style="flex:1;min-width:150px;">
+                                <div class="card-field-label"><?php echo $groupInfo['label']; ?></div>
+                                <div class="card-field-value"><strong><?php echo htmlspecialchars($row['group_name']); ?></strong></div>
                             </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-                <tfoot>
-                    <tr class="total-row">
-                        <td><strong>مجموع</strong></td>
-                        <td class="text-income"><strong><?php echo toPersianDigits(number_format($totalIncome, 0)); ?> تومان</strong></td>
-                        <td class="text-expense"><strong><?php echo toPersianDigits(number_format($totalExpense, 0)); ?> تومان</strong></td>
-                        <td class="<?php echo $netAmount >= 0 ? 'text-income' : 'text-expense'; ?>">
-                            <strong><?php echo $netAmount >= 0 ? '+' : ''; ?><?php echo toPersianDigits(number_format($netAmount, 0)); ?> تومان</strong>
-                        </td>
-                        <td><strong><?php echo toPersianDigits($totalTransactions); ?></strong></td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
+                            <div class="card-field">
+                                <div class="card-field-label">درآمد</div>
+                                <div class="card-field-value card-amount card-amount--income"><?php echo $row['total_income'] > 0 ? toPersianDigits(number_format($row['total_income'], 0)) . ' تومان' : '-'; ?></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">هزینه</div>
+                                <div class="card-field-value card-amount card-amount--expense"><?php echo $row['total_expense'] > 0 ? toPersianDigits(number_format($row['total_expense'], 0)) . ' تومان' : '-'; ?></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">خالص</div>
+                                <div class="card-field-value card-amount <?php echo $net >= 0 ? 'card-amount--income' : 'card-amount--expense'; ?>">
+                                    <?php echo $net >= 0 ? '+' : ''; ?><?php echo toPersianDigits(number_format($net, 0)); ?> تومان
+                                </div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">تراکنش‌ها</div>
+                                <div class="card-field-value"><?php echo toPersianDigits($row['transaction_count']); ?></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">سهم</div>
+                                <div class="card-field-value">
+                                    <div class="share-bar">
+                                        <div class="share-bar-fill" style="width: <?php echo $sharePct; ?>%"></div>
+                                        <span><?php echo toPersianDigits(number_format($sharePct, 1)); ?>%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <div class="card-total">
+                    <div class="card-field">
+                        <div class="card-field-label">مجموع درآمد</div>
+                        <div class="card-field-value"><strong><?php echo toPersianDigits(number_format($totalIncome, 0)); ?> تومان</strong></div>
+                    </div>
+                    <div class="card-field">
+                        <div class="card-field-label">مجموع هزینه</div>
+                        <div class="card-field-value"><strong><?php echo toPersianDigits(number_format($totalExpense, 0)); ?> تومان</strong></div>
+                    </div>
+                    <div class="card-field">
+                        <div class="card-field-label">خالص</div>
+                        <div class="card-field-value"><strong><?php echo $netAmount >= 0 ? '+' : ''; ?><?php echo toPersianDigits(number_format($netAmount, 0)); ?> تومان</strong></div>
+                    </div>
+                    <div class="card-field">
+                        <div class="card-field-label">تراکنش‌ها</div>
+                        <div class="card-field-value"><strong><?php echo toPersianDigits($totalTransactions); ?></strong></div>
+                    </div>
+                </div>
             </div>
         </div>
         <?php else: ?>

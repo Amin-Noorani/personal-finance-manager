@@ -386,66 +386,224 @@ body {
     background: linear-gradient(180deg, var(--danger-light) 0%, var(--surface) 100%);
 }
 
-/* Data Table */
-.data-table {
-    width: 100%;
+/* Card List */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.card-item {
     background: var(--surface);
-    border-radius: 12px;
     border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 4px 1fr auto;
+    align-items: stretch;
     box-shadow: var(--shadow-sm);
-    border-collapse: separate;
-    border-spacing: 0;
+    transition: box-shadow 0.2s, transform 0.2s;
     overflow: hidden;
 }
 
-.data-table th,
-.data-table td {
-    padding: 0.75rem 1rem;
-    text-align: right;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.875rem;
+.card-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
 }
 
-.data-table th {
-    background: var(--gray-50, #f8fafc);
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-size: 0.8rem;
+.card-accent {
+    border-radius: 14px 0 0 14px;
+}
+
+.card-accent--income {
+    background: var(--success);
+}
+
+.card-accent--expense {
+    background: var(--danger);
+}
+
+.card-accent--neutral {
+    background: var(--primary);
+}
+
+.card-body {
+    padding: 0.875rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.card-fields {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.125rem 1.5rem;
+    align-items: baseline;
+}
+
+.card-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.card-field--wide {
+    flex-basis: 100%;
+}
+
+.card-field-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    position: sticky;
-    top: 0;
+    letter-spacing: 0.05em;
+    line-height: 1;
 }
 
-.data-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.data-table tbody tr {
-    transition: background 0.15s;
-}
-
-.data-table tbody tr:hover {
-    background: var(--gray-50, #f8fafc);
-}
-
-.data-table th a {
-    color: inherit;
+.card-field-label a {
+    color: var(--text-muted);
     text-decoration: none;
+    transition: color 0.15s;
 }
 
-.data-table th a:hover {
+.card-field-label a:hover {
     color: var(--primary);
 }
 
+.card-field-value {
+    font-size: 0.875rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+}
+
+.card-field-value.text-income {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.card-field-value.text-expense {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.375rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.875rem 1rem 0.875rem 1.25rem;
+    border-right: 1px solid var(--border);
+    align-self: center;
+}
+
+.card-item--inactive {
+    opacity: 0.5;
+}
+
+.card-item--inactive .card-accent {
+    background: var(--text-muted) !important;
+}
+
+.card-total {
+    background: linear-gradient(135deg, var(--primary-light), #f0f0ff);
+    border: 1px solid #c7d2fe;
+    border-radius: 14px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+    align-items: center;
+}
+
+.card-total .card-field-value {
+    font-size: 1rem;
+}
+
+.card-total .card-field-label {
+    color: var(--primary);
+    opacity: 0.7;
+}
+
+/* Transaction-specific card amounts */
+.card-amount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.card-amount--income {
+    color: var(--success);
+}
+
+.card-amount--expense {
+    color: var(--danger);
+}
+
+@media (max-width: 768px) {
+    .card-item {
+        grid-template-columns: 3px 1fr;
+    }
+
+    .card-accent {
+        border-radius: 14px 0 0 14px;
+    }
+
+    .card-body {
+        padding: 0.75rem 1rem;
+        gap: 0.4rem;
+    }
+
+    .card-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .card-field {
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .card-field-value {
+        white-space: normal;
+    }
+
+    .card-amount {
+        font-size: 1.05rem;
+    }
+
+    .card-actions {
+        border-right: none;
+        border-top: 1px solid var(--border);
+        padding: 0.625rem 1rem;
+        justify-content: flex-end;
+        grid-column: 1/-1;
+    }
+
+    .card-total {
+        padding: 0.75rem 1rem;
+        gap: 0.75rem 1.5rem;
+    }
+}
+
+/* Badges */
+
 /* Badges */
 .badge {
-    display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.6rem;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 500;
+    padding: 2px 6px;
 }
 
 .badge-income {
@@ -1067,16 +1225,6 @@ body {
 
     .page-header .btn-group .btn {
         flex: 1;
-    }
-
-    .data-table {
-        font-size: 0.8rem;
-        min-width: 600px;
-    }
-
-    .data-table th,
-    .data-table td {
-        padding: 0.5rem 0.6rem;
     }
 
     .accounts-grid {

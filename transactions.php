@@ -187,45 +187,55 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <?php if (!empty($transactions)): ?>
-        <div style="overflow-x:auto;">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>تاریخ</th>
-                    <th>زمان</th>
-                    <th>نوع</th>
-                    <th>دسته‌بندی</th>
-                    <th>حساب</th>
-                    <th>برچسب</th>
-                    <th>مبلغ</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($transactions as $row): ?>
-                <tr>
-                    <td><?php echo toPersianDigits(formatJalali($row['date'])); ?></td>
-                    <td><?php echo htmlspecialchars($row['time']); ?></td>
-                    <td><span class="badge badge-<?php echo $row['type']; ?>"><?php echo $typeLabels[$row['type']] ?? $row['type']; ?></span></td>
-                    <td><?php echo htmlspecialchars($row['category_name'] ?? '-'); ?></td>
-                    <td><?php echo htmlspecialchars($row['account_name']); ?></td>
-                    <td><?php echo htmlspecialchars($row['tag_name'] ?? '-'); ?></td>
-                    <td class="<?php echo $row['type'] === 'income' ? 'text-income' : 'text-expense'; ?>">
-                        <?php echo $row['type'] === 'income' ? '+' : '-'; ?><?php echo toPersianDigits(number_format($row['amount'], 0)); ?> تومان
-                    </td>
-                    <td class="actions">
-                        <a href="/pfm/transactions.php?action=edit&id=<?php echo $row['id']; ?>" class="btn btn-small">ویرایش</a>
-                        <form method="POST" style="display:inline" onsubmit="return confirm('آیا از حذف این تراکنش اطمینان دارید؟')">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="transaction_id" value="<?php echo $row['id']; ?>">
-                            <button type="submit" class="btn btn-small btn-danger">حذف</button>
-                        </form>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="card-list">
+            <?php foreach ($transactions as $row): ?>
+            <div class="card-item">
+                <div class="card-accent card-accent--<?php echo $row['type']; ?>"></div>
+                <div class="card-body">
+                    <div class="card-fields">
+                        <div class="card-field">
+                            <div class="card-field-label">تاریخ</div>
+                            <div class="card-field-value"><?php echo toPersianDigits(formatJalali($row['date'])); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">زمان</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['time']); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">نوع</div>
+                            <div class="card-field-value"><span class="badge badge-<?php echo $row['type']; ?>"><?php echo $typeLabels[$row['type']] ?? $row['type']; ?></span></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">دسته‌بندی</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['category_name'] ?? '-'); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">حساب</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['account_name']); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">برچسب</div>
+                            <div class="card-field-value"><?php echo htmlspecialchars($row['tag_name'] ?? '-'); ?></div>
+                        </div>
+                        <div class="card-field">
+                            <div class="card-field-label">مبلغ</div>
+                            <div class="card-field-value card-amount card-amount--<?php echo $row['type']; ?>">
+                                <?php echo $row['type'] === 'income' ? '+' : '-'; ?><?php echo toPersianDigits(number_format($row['amount'], 0)); ?> تومان
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="/pfm/transactions.php?action=edit&id=<?php echo $row['id']; ?>" class="btn btn-small">ویرایش</a>
+                    <form method="POST" style="display:inline" onsubmit="return confirm('آیا از حذف این تراکنش اطمینان دارید؟')">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="transaction_id" value="<?php echo $row['id']; ?>">
+                        <button type="submit" class="btn btn-small btn-danger">حذف</button>
+                    </form>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
         <?php else: ?>
         <p class="text-muted">تراکنشی یافت نشد. اولین تراکنش خود را اضافه کنید.</p>

@@ -56,31 +56,38 @@ require_once __DIR__ . '/includes/header.php';
         <div class="section">
             <h2>آخرین تراکنش‌ها</h2>
             <?php if (!empty($recentTransactions)): ?>
-            <div style="overflow-x:auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>تاریخ</th>
-                        <th>نوع</th>
-                        <th>دسته‌بندی</th>
-                        <th>حساب</th>
-                        <th>مبلغ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($recentTransactions as $row): ?>
-                    <tr>
-                        <td><?php echo toPersianDigits(formatJalali($row['date'])); ?></td>
-                        <td><span class="badge badge-<?php echo $row['type']; ?>"><?php echo $typeLabels[$row['type']] ?? $row['type']; ?></span></td>
-                        <td><?php echo htmlspecialchars($row['category_name'] ?? 'بدون دسته‌بندی'); ?></td>
-                        <td><?php echo htmlspecialchars($row['account_name']); ?></td>
-                        <td class="<?php echo $row['type'] === 'income' ? 'text-income' : 'text-expense'; ?>">
-                            <?php echo $row['type'] === 'income' ? '+' : '-'; ?><?php echo toPersianDigits(number_format($row['amount'], 0)); ?> تومان
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+            <div class="card-list">
+                <?php foreach ($recentTransactions as $row): ?>
+                <div class="card-item">
+                    <div class="card-accent card-accent--<?php echo $row['type']; ?>"></div>
+                    <div class="card-body">
+                        <div class="card-fields">
+                            <div class="card-field">
+                                <div class="card-field-label">تاریخ</div>
+                                <div class="card-field-value"><?php echo toPersianDigits(formatJalali($row['date'])); ?></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">نوع</div>
+                                <div class="card-field-value"><span class="badge badge-<?php echo $row['type']; ?>"><?php echo $typeLabels[$row['type']] ?? $row['type']; ?></span></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">دسته‌بندی</div>
+                                <div class="card-field-value"><?php echo htmlspecialchars($row['category_name'] ?? 'بدون دسته‌بندی'); ?></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">حساب</div>
+                                <div class="card-field-value"><?php echo htmlspecialchars($row['account_name']); ?></div>
+                            </div>
+                            <div class="card-field">
+                                <div class="card-field-label">مبلغ</div>
+                                <div class="card-field-value card-amount card-amount--<?php echo $row['type']; ?>">
+                                    <?php echo $row['type'] === 'income' ? '+' : '-'; ?><?php echo toPersianDigits(number_format($row['amount'], 0)); ?> تومان
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
             <?php else: ?>
             <p class="text-muted">هنوز تراکنشی ثبت نشده است. <a href="/pfm/transactions.php?action=add">اولین تراکنش خود را اضافه کنید</a></p>
