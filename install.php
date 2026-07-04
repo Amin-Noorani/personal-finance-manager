@@ -9,7 +9,7 @@ try {
         username VARCHAR(50) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $db->exec("CREATE TABLE IF NOT EXISTS accounts (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -17,7 +17,7 @@ try {
         initial_balance DECIMAL(12,2) DEFAULT 0.00,
         current_balance DECIMAL(12,2) DEFAULT 0.00,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $db->exec("CREATE TABLE IF NOT EXISTS categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -26,12 +26,12 @@ try {
         is_active TINYINT(1) DEFAULT 1,
         type ENUM('income', 'expense', 'both') DEFAULT 'both',
         FOREIGN KEY (parent_category_id) REFERENCES categories(id) ON DELETE SET NULL
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $db->exec("CREATE TABLE IF NOT EXISTS tags (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(50) UNIQUE NOT NULL
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $db->exec("CREATE TABLE IF NOT EXISTS transactions (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,7 +50,7 @@ try {
         INDEX idx_date (date),
         INDEX idx_type (type),
         INDEX idx_account (account_id)
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $db->exec("CREATE TABLE IF NOT EXISTS login_attempts (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,7 +58,7 @@ try {
         attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_ip (ip_address),
         INDEX idx_time (attempted_at)
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $db->exec("CREATE TABLE IF NOT EXISTS remember_tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,7 +68,7 @@ try {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_user (user_id),
         INDEX idx_expires (expires_at)
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $defaultCategories = [
         // Income categories
