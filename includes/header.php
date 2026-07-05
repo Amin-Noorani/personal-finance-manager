@@ -1,4 +1,6 @@
 <?php
+define( 'APP_VERSION', '1.0.0.0' );
+
 // $pageTitle - page title text
 // $activePage - which nav item is active (dashboard, transactions, categories, tags, accounts, search, statistics, analytics)
 // $extraCss - array of additional CSS paths to load

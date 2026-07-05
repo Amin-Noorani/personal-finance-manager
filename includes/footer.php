@@ -17,12 +17,12 @@ $extraScripts = $extraScripts ?? [];
     <?php if ($includeChart): ?>
     <script src="/pfm/lib/chart.min.js"></script>
     <?php endif; ?>
-    <script src="/pfm/js/app.js"></script>
+    <script src="/pfm/js/app.js?ver=<?php echo APP_VERSION ?>"></script>
     <?php foreach ($extraScripts as $script): ?>
     <?php if (strpos($script, '<') === 0): ?>
     <?php echo $script; ?>
     <?php else: ?>
-    <script src="<?php echo $script; ?>"></script>
+    <script src="<?php echo $script . '?ver=' . APP_VERSION ?>"></script>
     <?php endif; ?>
     <?php endforeach; ?>
 </body>
