@@ -269,40 +269,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         result.type = detectedType;
 
-        // Extract amount - look for the transaction line (contains amount after keyword)
-        // Pattern: keyword: number — using Persian forms since text is normalized
-        var amountPatterns = [
-            /(?:برداشت|خرید|انتقال|واریز|پرداخت|سود|کارت\s*به\s*کارت\s*(?:از|به)?)\s*:\s*([\d,]+)/,
-            /(?:مبلغ|مقدار)\s*:\s*([\d,]+)/
-        ];
+        // Extract amount - handle both formats:
+        // Old: "خرید: 3,350,000" (Toman)
+        // New: "برداشت:3,550,000-" (Rial, with trailing minus)
         var amount = 0;
-        for (var p = 0; p < amountPatterns.length; p++) {
-            var m = normalized.match(amountPatterns[p]);
-            if (m) {
-                amount = parseInt(m[1].replace(/,/g, ''), 10);
-                break;
-            }
+        var amountMatch = normalized.match(/(?:برداشت|خرید|انتقال|واریز|پرداخت|سود|کارت\s*به\s*کارت\s*(?:از|به)?)\s*:\s*([\d,]+)\-?/);
+        if (!amountMatch) {
+            amountMatch = normalized.match(/(?:مبلغ|مقدار)\s*:\s*([\d,]+)\-?/);
+        }
+        if (amountMatch) {
+            amount = parseInt(amountMatch[1].replace(/,/g, ''), 10);
+        }
+
+        // Detect if amount is in Rial (new format with MMDD-HH:MM at end)
+        // If the message has the compact date format at the end, amount is in Rial
+        var isRialFormat = /\d{4}-\d{2}:\d{2}\s*$/.test(normalized);
+        if (isRialFormat && amount > 0) {
+            amount = Math.round(amount / 10);
         }
         result.amount = amount;
 
-        // Extract date (Jalali format: YYYY/MM/DD or YYYY-MM-DD)
-        // Persian form: تاریخ (text already normalized to Persian chars)
-        var dateMatch = normalized.match(/تاریخ\s*:\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-        if (dateMatch) {
-            var jy = parseInt(dateMatch[1], 10);
-            var jm = parseInt(dateMatch[2], 10);
-            var jd = parseInt(dateMatch[3], 10);
+        // Extract date - try new format first: MMDD-HH:MM at end of message
+        // e.g., "0413-20:19" = month 4, day 13, time 20:19
+        var newDateMatch = normalized.match(/(\d{2})(\d{2})-(\d{2}):(\d{2})\s*$/);
+        if (newDateMatch) {
+            var jm = parseInt(newDateMatch[1], 10);
+            var jd = parseInt(newDateMatch[2], 10);
+            var hh = newDateMatch[3];
+            var mm = newDateMatch[4];
+            // Default year: current Jalali year (extracted from today)
+            var now = new Date();
+            var jToday = gregorianToJalaliJS(now.getFullYear(), now.getMonth() + 1, now.getDate());
+            var jy = jToday[0];
             result.jalaliDate = jy + '/' + String(jm).padStart(2, '0') + '/' + String(jd).padStart(2, '0');
-            // Convert Jalali to Gregorian using the PHP function's algorithm
             result.gregorianDate = jalaliToGregorianJS(jy, jm, jd);
-        }
-
-        // Extract time
-        var timeMatch = normalized.match(/ساعت\s*:\s*(\d{1,2}):(\d{1,2}):(\d{1,2})/);
-        if (timeMatch) {
-            result.time = String(parseInt(timeMatch[1], 10)).padStart(2, '0') + ':' +
-                          String(parseInt(timeMatch[2], 10)).padStart(2, '0') + ':' +
-                          String(parseInt(timeMatch[3], 10)).padStart(2, '0');
+            result.time = hh + ':' + mm + ':00';
+        } else {
+            // Old format: تاریخ: YYYY/MM/DD and ساعت: HH:MM:SS
+            var dateMatch = normalized.match(/تاریخ\s*:\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if (dateMatch) {
+                var jy2 = parseInt(dateMatch[1], 10);
+                var jm2 = parseInt(dateMatch[2], 10);
+                var jd2 = parseInt(dateMatch[3], 10);
+                result.jalaliDate = jy2 + '/' + String(jm2).padStart(2, '0') + '/' + String(jd2).padStart(2, '0');
+                result.gregorianDate = jalaliToGregorianJS(jy2, jm2, jd2);
+            }
+            var timeMatch = normalized.match(/ساعت\s*:\s*(\d{1,2}):(\d{1,2}):(\d{1,2})/);
+            if (timeMatch) {
+                result.time = String(parseInt(timeMatch[1], 10)).padStart(2, '0') + ':' +
+                              String(parseInt(timeMatch[2], 10)).padStart(2, '0') + ':' +
+                              String(parseInt(timeMatch[3], 10)).padStart(2, '0');
+            }
         }
 
         // Build description from bank name and card info
@@ -310,17 +327,45 @@ document.addEventListener('DOMContentLoaded', function() {
         var descParts = [];
         for (var l = 0; l < lines.length; l++) {
             var line = lines[l].trim();
-            if (line.indexOf('بانک') !== -1) {
+            if (line.indexOf('بانک') !== -1 || line.indexOf('حساب') !== -1) {
                 descParts.push(line);
             }
         }
         result.description = descParts.join(' - ');
-        
 
         if (result.amount === 0) return null;
         console.log(result);
         
         return result;
+    }
+
+    function gregorianToJalaliJS(gy, gm, gd) {
+        // Port of JDF gregorian_to_jalali
+        var g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+        if (gy > 1600) {
+            var jy = 979;
+            gy -= 1600;
+        } else {
+            var jy = 0;
+            gy -= 621;
+        }
+        var gy2 = (gm > 2) ? (gy + 1) : gy;
+        var days = (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) - 80 + gd + g_d_m[gm - 1];
+        jy += 33 * Math.floor(days / 12053);
+        days %= 12053;
+        jy += 4 * Math.floor(days / 1461);
+        days %= 1461;
+        jy += Math.floor((days - 1) / 365);
+        if (days > 365) days = (days - 1) % 365;
+        var jm, jd2;
+        if (days < 186) {
+            jm = 1 + Math.floor(days / 31);
+            jd2 = 1 + (days % 31);
+        } else {
+            jm = 7 + Math.floor((days - 186) / 30);
+            jd2 = 1 + ((days - 186) % 30);
+        }
+        return [jy, jm, jd2];
     }
 
     function jalaliToGregorianJS(jy, jm, jd) {
